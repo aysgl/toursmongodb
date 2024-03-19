@@ -59,18 +59,17 @@ exports.protect = async (req, res, next) => {
   let token = req.headers.authorization;
 
   if (token && token.startsWith("Bearer ")) {
-    token = token.split(" ")[1]; // "Bearer " kısmını kaldır
+    token = token.split(" ")[1];
   }
 
   if (!token) {
-    return next(res.status(423).json({ message: "No token provided" }));
+    return res.status(423).json({ message: "No token provided" });
   }
 
   try {
-    jwt.verify(token, process.env.JWT_SECRET);
+    const tkn = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch (error) {
-    next(res.status(423).json({ message: "Invalid token" }));
+    return res.status(423).json({ message: "Invalid token" });
   }
-  next();
 };

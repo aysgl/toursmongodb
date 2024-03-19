@@ -17,7 +17,7 @@ const importData = async () => {
   } catch (error) {
     console.log(error);
   }
-  process.exit();
+  process.exit(Nrute);
 };
 
 const deleteData = async () => {
