@@ -1,6 +1,7 @@
 const validator = require("validator");
 const { Schema, model } = require("mongoose");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 const userSchema = new Schema({
   username: { type: String, unique: true, required: true },
@@ -34,10 +35,15 @@ const userSchema = new Schema({
   role: { type: String, enum: ["user", "guide", "admin"], default: "user" },
   active: { type: Boolean, default: true, selected: false },
   passwordChangedAt: { type: Date },
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 });
 
-userSchema.pre("save", async function () {
-  this.password = await bcrypt.hash(this.password, 12);
+userSchema.pre("save", async function (next) {
+  if (this.isModified("password") || this.isNew) {
+    const salt = await bcrypt.genSalt(12);
+    this.password = await bcrypt.hash(this.password, salt);
+  }
   this.passwordConfirm = undefined;
 });
 
@@ -52,6 +58,18 @@ userSchema.methods.controlPasswordDate = async function (JWTtime) {
 
   const changeTime = parseInt(this.passwordChangedAt?.getTime() / 1000);
   return JWTtime < changeTime;
+};
+
+userSchema.methods.createResetPasswordToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  console.log(resetToken); // a2c3cb3f8652c3f9004bfb1b493f25f3721538ed900f08bcf0dad31a65ca75e5
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  return resetToken;
 };
 
 const User = model("User", userSchema);

@@ -103,6 +103,27 @@ exports.restrictTo =
     next();
   };
 
-exports.resetPassword = (req, res, next) => {};
+exports.forgotPassword = async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new AppError("User not found", 404));
+  }
+  const resetToken = user.createResetPasswordToken();
+  await user.save({ validateBeforeSave: false });
 
-exports.forgorPassword = (req, res, next) => {};
+  try {
+    await sendMail({
+      email: user.email,
+      subject: "Reset Password",
+      html: `<h1>Merhaba ${user.email}</h1> 
+      <div>
+        <a href="http://127.0.0.1:8080/api/users/reset-password/${resetToken}">Click on the following link to reset your password: http://127.0.0.1:8080/api/users/reset-password/${resetToken}</a>
+      </div>`,
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 400));
+  }
+  res.status(200).json({ message: "Reset Password" });
+};
+
+exports.resetPassword = (req, res, next) => {};
