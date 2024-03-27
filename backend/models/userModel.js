@@ -33,13 +33,26 @@ const userSchema = new Schema({
   },
   role: { type: String, enum: ["user", "guide", "admin"], default: "user" },
   active: { type: Boolean, default: true, selected: false },
+  passwordChangedAt: { type: Date },
 });
 
 userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, 12);
-
   this.passwordConfirm = undefined;
 });
+
+userSchema.methods.correctPassword = async function (candidatePass, userPass) {
+  return await bcrypt.compare(candidatePass, userPass);
+};
+
+userSchema.methods.controlPasswordDate = async function (JWTtime) {
+  if (!this.passwordChangedAt || !JWTtime) {
+    return false;
+  }
+
+  const changeTime = parseInt(this.passwordChangedAt?.getTime() / 1000);
+  return JWTtime < changeTime;
+};
 
 const User = model("User", userSchema);
 module.exports = User;
