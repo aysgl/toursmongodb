@@ -15,7 +15,6 @@ const userSchema = new Schema({
     type: String,
     required: true,
     validate: validator.isStrongPassword,
-    // select: false,
   },
   passwordConfirm: {
     type: String,
@@ -30,60 +29,48 @@ const userSchema = new Schema({
   },
   photo: {
     type: String,
-    default:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+    default: "https://example.com/default-photo.jpg",
   },
   role: { type: String, enum: ["user", "guide", "admin"], default: "user" },
-  active: { type: Boolean, default: true, selected: false },
+  active: { type: Boolean, default: true, select: false },
   passwordChangedAt: { type: Date },
   passwordResetToken: String,
   passwordResetExpires: Date,
 });
 
 userSchema.pre("save", async function (next) {
-  if (this.isModified("password") || this.isNew) {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-    this.passwordConfirm = undefined;
-  }
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined;
   next();
 });
 
-userSchema.pre("save", async function (next) {
-  if (this.isModified("password") || this.isNew) {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-    this.passwordConfirm = undefined;
-  }
+userSchema.pre("save", function (next) {
+  if (!this.isModified("password") || this.isNew) return next();
+  this.passwordChangedAt = Date.now() - 1000;
   next();
 });
 
-userSchema.pre(/^find/, async function (next) {
+userSchema.pre(/^find/, function (next) {
   this.find({ active: { $ne: false } });
   next();
 });
 
 userSchema.methods.correctPassword = async function (candidatePass, userPass) {
-  return (isValidPassword = await bcrypt.compare(candidatePass, userPass));
+  return await bcrypt.compare(candidatePass, userPass);
 };
 
-userSchema.methods.controlPasswordDate = async function (JWTtime) {
-  if (!this.passwordChangedAt || !JWTtime) {
-    return false;
-  }
-
-  const changeTime = parseInt(this.passwordChangedAt?.getTime() / 1000);
-  return JWTtime < changeTime;
+userSchema.methods.controlPasswordDate = function (JWTtime) {
+  if (!this.passwordChangedAt || !JWTtime) return false;
+  return Math.floor(this.passwordChangedAt.getTime() / 1000) < JWTtime;
 };
 
 userSchema.methods.createResetPasswordToken = function () {
   const resetToken = crypto.randomBytes(32).toString("hex");
-  // console.log(resetToken); // a2c3cb3f8652c3f9004bfb1b493f25f3721538ed900f08bcf0dad31a65ca75e5
   this.passwordResetToken = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
-
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };

@@ -14,12 +14,12 @@ router.patch("/update-password", authController.updatePassword);
 router.patch("/update-me", userController.updateMe);
 router.delete("/delete-me", userController.deleteMe);
 
-router.route("/").get(userController.getUsers).post(userController.postUser);
+router.route("/").get(userController.getUsers).post(userController.createUser);
 
 router
   .route("/:id")
   .get(userController.getUser)
-  .patch(userController.patchUser)
+  .patch(userController.updateUser)
   .delete(userController.deleteUser);
 
 module.exports = router;

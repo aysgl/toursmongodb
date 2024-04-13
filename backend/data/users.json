@@ -1,0 +1,29 @@
+[
+  {
+    "_id": "5c8a1f292f8fb814b56fa184",
+    "username": "Leo Gillespie",
+    "email": "leo@example.com",
+    "role": "guide",
+    "active": true,
+    "photo": "user-5.jpg",
+    "password": "$2a$12$OOPr90tBEBF1Iho3ox0Jde0O/WXUR0VLA5xdh6tWcu7qb.qOCvSg2"
+  },
+  {
+    "_id": "5c8a1f4e2f8fb814b56fa185",
+    "username": "Jennifer Hardy",
+    "email": "jennifer@example.com",
+    "role": "guide",
+    "active": true,
+    "photo": "user-6.jpg",
+    "password": "$2a$12$XCXvvlhRBJ8CydKH09v1v.jpg0hB9gVVfMVEoz4MsxqL9zb5PrF42"
+  },
+
+  {
+    "username": "aysgl",
+    "email": "aysgl.avcu@hotmail.com",
+    "password": "$2b$12$LcJAi.2XpFm.ranCNjgQd.VqaWw04BdXAi3EAcmsesKUiizZ/WtWm",
+    "photo": "https://example.com/default-photo.jpg",
+    "role": "admin",
+    "active": true
+  }
+]

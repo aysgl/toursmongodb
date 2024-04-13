@@ -1,6 +1,13 @@
 const Tour = require("../models/tourModel");
 const APIFeatures = require("../utils/apiFeatures");
 const AppError = require("../utils/appError");
+const {
+  deleteOne,
+  updateOne,
+  createOne,
+  getOne,
+  getAll,
+} = require("./handleFactory");
 
 exports.aliasTopTours = async (req, res, next) => {
   // console.log(req.query.fields);
@@ -94,62 +101,12 @@ exports.getMontlyPlan = async (req, res, next) => {
   }
 };
 
-exports.getTours = async (req, res, next) => {
-  try {
-    const features = new APIFeatures(Tour.find(), req.query)
-      .filter()
-      .sort()
-      .fields()
-      .page();
+exports.getTours = getAll(Tour);
 
-    const tours = await features.query;
+exports.getTour = getOne(Tour, "reviews");
 
-    res.status(200).json({
-      message: "success get tours",
-      results: tours.length,
-      data: tours,
-    });
-  } catch (error) {
-    return next(new AppError(error.message, 400));
-  }
-};
+exports.postTour = createOne(Tour);
 
-exports.getTour = async (req, res, next) => {
-  try {
-    const tour = await Tour.findOne({ _id: req.params.id });
-    res
-      .status(200)
-      .json({ message: "success get tour", results: tour.length, data: tour });
-  } catch (error) {
-    return next(new AppError(error.message, 400));
-  }
-};
+exports.patchTour = updateOne(Tour);
 
-exports.postTour = async (req, res, next) => {
-  try {
-    const newTour = await Tour.create(req.body);
-    res.status(201).json({ message: "success newTour", data: newTour });
-  } catch (error) {
-    return next(new AppError(error.message, 400));
-  }
-};
-
-exports.patchTour = async (req, res, next) => {
-  try {
-    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    res.status(200).json({ message: "success patch tour", data: tour });
-  } catch (error) {
-    return next(new AppError(error.message, 400));
-  }
-};
-
-exports.deleteTour = async (req, res, next) => {
-  try {
-    await Tour.findByIdAndDelete(req.params.id);
-    res.status(204).json({ message: "success delete tour" });
-  } catch (error) {
-    return next(new AppError(error.message, 400));
-  }
-};
+exports.deleteTour = deleteOne(Tour);

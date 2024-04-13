@@ -1,37 +1,29 @@
 const fs = require("fs");
 const mongoose = require("mongoose");
 const Tour = require("../models/tourModel");
-require("dotenv").config({ path: "../.env" });
+const User = require("../models/userModel");
+require("dotenv").config();
 
-mongoose
-  .connect(process.env.DATABASE_URL)
-  .then(() => console.log("Mongoose db success"))
-  .catch((err) => console.log(err));
-
-const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, "utf-8"));
-
-const importData = async () => {
+(async () => {
   try {
-    await Tour.insertMany(tours);
-    console.log("Data import successful");
-  } catch (error) {
-    console.log(error);
-  }
-  process.exit(Nrute);
-};
+    await mongoose.connect(process.env.DATABASE_URL);
+    console.log("Mongoose db success");
 
-const deleteData = async () => {
-  try {
-    await Tour.deleteMany();
-    console.log("Data deletion successful");
-  } catch (error) {
-    console.log(error);
-  }
-  process.exit();
-};
+    const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`));
+    const users = JSON.parse(fs.readFileSync(`${__dirname}/users.json`));
 
-if (process.argv.includes("--import")) {
-  importData();
-} else if (process.argv.includes("--delete")) {
-  deleteData();
-}
+    if (process.argv.includes("--import")) {
+      await Tour.create(tours, { validateBeforeSave: false });
+      await User.create(users, { validateBeforeSave: false });
+      console.log("Data import successful");
+    } else if (process.argv.includes("--delete")) {
+      await Tour.deleteMany();
+      await User.deleteMany();
+      console.log("Data deletion successful");
+    }
+  } catch (error) {
+    console.error("An error occurred:", error);
+  } finally {
+    process.exit();
+  }
+})();

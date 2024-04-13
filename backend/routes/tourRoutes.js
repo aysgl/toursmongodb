@@ -10,6 +10,7 @@ const {
   getMontlyPlan,
 } = require("../controllers/tourController");
 const { protect, restrictTo } = require("../controllers/authController");
+const reviewRoutes = require("../routes/reviewRoutes");
 
 const router = express.Router();
 
@@ -33,5 +34,7 @@ router
   .get(getTour)
   .delete(protect, restrictTo("admin"), deleteTour)
   .patch(protect, restrictTo("user", "admin"), patchTour);
+
+router.use("/:tourId/reviews", reviewRoutes);
 
 module.exports = router;

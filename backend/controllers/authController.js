@@ -55,10 +55,6 @@ exports.login = async (req, res, next) => {
 
     const isValidPassword = await bcrypt.compare(password, user.password);
 
-    console.log("Gelen Şifre:", password);
-    console.log("Veritabanındaki Şifre:", user.password);
-    console.log("isValidPassword:", isValidPassword);
-
     if (!isValidPassword) {
       return next(new AppError("Invalid email or password", 400));
     }
@@ -96,7 +92,6 @@ exports.protect = async (req, res, next) => {
     return next(new AppError("User not found", 403));
   }
 
-  // controlPasswordDate yöntemi asenkron olarak çalıştırılıyor
   if (await activeUser.controlPasswordDate(decoded.iat)) {
     return next(
       new AppError("Your session has expired, Please try again login", 403)

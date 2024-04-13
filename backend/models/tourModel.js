@@ -6,7 +6,7 @@ const tourSchema = new Schema(
     name: {
       type: String,
       unique: true,
-      required: true,
+      required: [true, "This is the name of the tour"],
       validate: [
         validator.isAlpha,
         "Name must contain only alphabetical characters",
@@ -16,7 +16,10 @@ const tourSchema = new Schema(
     maxGroupSize: { type: Number, required: true },
     difficulty: {
       type: String,
-      enum: { values: ["easy", "moderate"], message: "Not selected" },
+      enum: {
+        values: ["easy", "medium", "difficult"],
+        message: "Not selected",
+      },
     },
     ratingsAverage: { type: Number, default: 4.0 },
     ratingsQuantity: { type: Number, default: 0 },
@@ -35,14 +38,42 @@ const tourSchema = new Schema(
     imageCover: String,
     images: [String],
     startDates: [Date],
-    createdAt: { type: Date, default: Date.now() },
     hour: { type: Number },
+    startLocation: {
+      type: {
+        type: String,
+        default: "Point",
+        enum: ["Point"],
+      },
+      description: String,
+      coordinates: [Number],
+      address: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: "Point",
+          enum: ["Point"],
+        },
+        description: String,
+        coordinates: [Number],
+        day: Number,
+      },
+    ],
+    guides: [{ type: Schema.ObjectId, ref: "User" }],
   },
-  { toJSON: { virtuals: true }, toObject: { virtuals: true } }
+  { toJSON: { virtuals: true }, toObject: { virtuals: true }, timestamps: true }
 );
 
 tourSchema.virtual("slug").get(function () {
   return this.name.toLowerCase().split(" ").join("-");
+});
+
+tourSchema.virtual("reviews", {
+  ref: "Review",
+  foreignField: "tour",
+  localField: "_id",
 });
 
 tourSchema.pre("save", function (next) {
@@ -53,6 +84,14 @@ tourSchema.pre("save", function (next) {
 tourSchema.pre("aggregate", function (doc, next) {
   this.pipeline().unshift({ $match: { ratingsAverage: { $gte: 4.5 } } });
   // this.where("ratingsAverage").gte(4.7);
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "guides",
+    select: "-__v -passwordResetToken -passwordResetExpires",
+  });
   next();
 });
 

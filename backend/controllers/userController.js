@@ -1,37 +1,66 @@
 const User = require("../models/userModel");
 const AppError = require("../utils/appError");
+const filterObj = require("../utils/filterObj");
+const {
+  deleteOne,
+  updateOne,
+  createOne,
+  getOne,
+  getAll,
+} = require("./handleFactory");
 
-exports.updateMe = (req, res, next) => {
-  if (req.body.password || req.body.passwordConfirm) {
-    return next(
-      new AppError(
-        "Password fields cannot be updated using this route. Please use /update-password route for password updates.",
-        400
-      )
-    );
+exports.updateMe = async (req, res, next) => {
+  try {
+    if (req.body.password || req.body.passwordConfirm) {
+      return next(
+        new AppError(
+          "Password fields cannot be updated using this route. Please use /update-password route for password updates.",
+          400
+        )
+      );
+    }
+
+    const filtredBody = filterObj(req.body, "username", "email", "photo");
+
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, filtredBody, {
+      new: true,
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: "User updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    return next(new AppError(error.message));
   }
-
-  res.status(200).json({
-    status: "success",
-    message: "User updated successfully",
-  });
 };
 
-exports.deleteMe = (req, res, next) => {
-  User.findByIdAndUpdate(req.user._id, { active: false });
+exports.deleteMe = async (req, res, next) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, {
+      active: false,
+    });
 
-  res.status(200).json({
-    status: "success",
-    message: "User is inactive",
-  });
+    if (!updatedUser) {
+      return next(new AppError("User not found", 404));
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "User is inactive",
+    });
+  } catch (error) {
+    return next(new AppError(error.message));
+  }
 };
 
-exports.getUsers = (req, res) => {};
+exports.getUsers = getAll(User);
 
-exports.getUser = (req, res) => {};
+exports.getUser = getOne(User);
 
-exports.postUser = (req, res) => {};
+exports.createUser = createOne(User);
 
-exports.patchUser = (req, res) => {};
+exports.updateUser = updateOne(User);
 
-exports.deleteUser = (req, res) => {};
+exports.deleteUser = deleteOne(User);
