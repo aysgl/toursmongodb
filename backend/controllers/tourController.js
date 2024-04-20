@@ -1,5 +1,4 @@
 const Tour = require("../models/tourModel");
-const APIFeatures = require("../utils/apiFeatures");
 const AppError = require("../utils/appError");
 const {
   deleteOne,
@@ -13,7 +12,7 @@ exports.aliasTopTours = async (req, res, next) => {
   // console.log(req.query.fields);
   req.query.sort = "ratingsAverage";
   req.query.fields = "-_id,-startDates,-images";
-  req.query.limit = 5;
+  // req.query.limit = 5;
   next();
 };
 
@@ -110,3 +109,22 @@ exports.postTour = createOne(Tour);
 exports.patchTour = updateOne(Tour);
 
 exports.deleteTour = deleteOne(Tour);
+
+exports.getToursWithin = async (req, res, next) => {
+  const { latlng, distance, unit } = req.params;
+  const [lat, lng] = latlng.split(",");
+
+  const radius = unit == "km" ? distance / 6378.1 : distance / 3963.2;
+
+  if (!lat || !lng)
+    return next(new AppError("Please enter latitude and longitude"));
+
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lat, lng], radius] } },
+  });
+
+  res.status(200).json({
+    message: "Done",
+    tours,
+  });
+};

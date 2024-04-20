@@ -26,6 +26,7 @@ exports.createOne = (Model) => async (req, res, next) => {
     const data = await Model.create(req.body);
     res.status(201).json({ message: "Success", data: data });
   } catch (error) {
+    console.log(error);
     return next(new AppError("Failed to create data", 400));
   }
 };

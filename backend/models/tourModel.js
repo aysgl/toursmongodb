@@ -7,10 +7,10 @@ const tourSchema = new Schema(
       type: String,
       unique: true,
       required: [true, "This is the name of the tour"],
-      validate: [
-        validator.isAlpha,
-        "Name must contain only alphabetical characters",
-      ],
+      // validate: [
+      //   validator.isAlpha,
+      //   "Name must contain only alphabetical characters",
+      // ],
     },
     duration: { type: Number, required: true },
     maxGroupSize: { type: Number, required: true },
@@ -43,7 +43,6 @@ const tourSchema = new Schema(
       type: {
         type: String,
         default: "Point",
-        enum: ["Point"],
       },
       description: String,
       coordinates: [Number],
@@ -54,10 +53,9 @@ const tourSchema = new Schema(
         type: {
           type: String,
           default: "Point",
-          enum: ["Point"],
         },
-        description: String,
         coordinates: [Number],
+        description: String,
         day: Number,
       },
     ],
@@ -65,6 +63,10 @@ const tourSchema = new Schema(
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true }, timestamps: true }
 );
+
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+
+tourSchema.index({ startLocation: "2dsphere" });
 
 tourSchema.virtual("slug").get(function () {
   return this.name.toLowerCase().split(" ").join("-");
@@ -81,10 +83,10 @@ tourSchema.pre("save", function (next) {
   next();
 });
 
-tourSchema.pre("aggregate", function (doc, next) {
+tourSchema.pre("aggregate", function (doc) {
   this.pipeline().unshift({ $match: { ratingsAverage: { $gte: 4.5 } } });
   // this.where("ratingsAverage").gte(4.7);
-  next();
+  doc();
 });
 
 tourSchema.pre(/^find/, function (next) {

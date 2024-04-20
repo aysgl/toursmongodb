@@ -8,6 +8,7 @@ const {
   aliasTopTours,
   getTourStats,
   getMontlyPlan,
+  getToursWithin,
 } = require("../controllers/tourController");
 const { protect, restrictTo } = require("../controllers/authController");
 const reviewRoutes = require("../routes/reviewRoutes");
@@ -36,5 +37,9 @@ router
   .patch(protect, restrictTo("user", "admin"), patchTour);
 
 router.use("/:tourId/reviews", reviewRoutes);
+
+router
+  .route("/tours-within/:distance/center/:latlng/unit/:unit")
+  .get(getToursWithin);
 
 module.exports = router;

@@ -1,17 +1,25 @@
 const Review = require("../models/reviewModel");
 const AppError = require("../utils/appError");
-const { deleteOne, updateOne, getOne, getAll } = require("./handleFactory");
+const {
+  deleteOne,
+  updateOne,
+  createOne,
+  getOne,
+  getAll,
+} = require("./handleFactory");
 
 exports.getAllReviews = getAll(Review);
 
 exports.getReview = getOne(Review);
 
-exports.createReview = async (req, res, next) => {
+exports.setRefIds = (req, res, next) => {
   if (!req.body.tour) req.body.tour = req.params.tourId;
-  if (!req.body.uuser) req.body.user = req.params.id;
+  if (!req.body.user) req.body.user = req.user.id;
 
-  createOne(Review);
+  next();
 };
+
+exports.createReview = createOne(Review);
 
 exports.deleteReview = deleteOne(Review);
 
