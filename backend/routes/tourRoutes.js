@@ -9,6 +9,7 @@ const {
   getTourStats,
   getMontlyPlan,
   getToursWithin,
+  getToursDistance,
 } = require("../controllers/tourController");
 const { protect, restrictTo } = require("../controllers/authController");
 const reviewRoutes = require("../routes/reviewRoutes");
@@ -41,5 +42,7 @@ router.use("/:tourId/reviews", reviewRoutes);
 router
   .route("/tours-within/:distance/center/:latlng/unit/:unit")
   .get(getToursWithin);
+
+router.route("/tours-distance/:latlng/unit/:unit").get(getToursDistance);
 
 module.exports = router;

@@ -9,6 +9,7 @@ const userRouter = require("./routes/userRoutes");
 const reviewRouter = require("./routes/reviewRoutes");
 const xss = require("xss");
 const hpp = require("hpp");
+const multer = require("multer");
 
 const app = express();
 

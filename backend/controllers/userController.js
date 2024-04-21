@@ -8,6 +8,52 @@ const {
   getOne,
   getAll,
 } = require("./handleFactory");
+const multer = require("multer");
+const sharp = require("sharp");
+
+// const multerStorage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "public/img/users");
+//   },
+//   filename: function (req, file, cb) {
+//     const ext = file.mimetype.split("/")[1];
+//     cb(null, `user-${req.user.id}-${Date.now()}.${ext}`);
+//   },
+// });
+
+const multerStorage = multer.memoryStorage({});
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image")) {
+    cb(null, true);
+  } else {
+    cb(new AppError("Invalid", 400)), false;
+  }
+};
+
+const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+
+exports.uploadPhoto = upload.single("photo");
+
+exports.resizePhoto = async (req, res, next) => {
+  try {
+    if (!req.file) return next();
+
+    const filename = `${req.user.id}-${Date.now()}.jpeg`;
+
+    const image = await sharp(req.file.buffer)
+      .resize(400, 400)
+      .toFormat("jpeg")
+      .jpeg({ quality: 70 })
+      .toFile(`public/img/users/${filename}`);
+    res.status(200).json({
+      status: "success",
+      message: "Image resized successfully",
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 400));
+  }
+};
 
 exports.updateMe = async (req, res, next) => {
   try {
@@ -20,7 +66,9 @@ exports.updateMe = async (req, res, next) => {
       );
     }
 
-    const filtredBody = filterObj(req.body, "username", "email", "photo");
+    const filtredBody = filterObj(req.body, "username", "email");
+
+    if (req.file) filtredBody.photo = req.file.filename;
 
     const updatedUser = await User.findByIdAndUpdate(req.user.id, filtredBody, {
       new: true,

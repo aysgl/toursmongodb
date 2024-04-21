@@ -84,7 +84,7 @@ tourSchema.pre("save", function (next) {
 });
 
 tourSchema.pre("aggregate", function (doc) {
-  this.pipeline().unshift({ $match: { ratingsAverage: { $gte: 4.5 } } });
+  this.pipeline().push({ $match: { ratingsAverage: { $gte: 4.5 } } });
   // this.where("ratingsAverage").gte(4.7);
   doc();
 });
